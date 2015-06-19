@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce Shipping Methods On Product Pages
 Plugin URI: 
 Description: WooCommerce Shipping Methods On Product Pages allows you to show enabled shipping methods on your single product pages
-Version: 1.0
+Version: 1.0.1
 Author: Bradley Davis
 Author URI: http://bradley-davis.com
 License: GPL3
@@ -50,15 +50,47 @@ if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', g
 		}
 
 		function woo_smpp_output() {
-			setlocale(LC_MONETARY, 'en_US');
+			$smpp_currency = get_option( 'woocommerce_currency' );
 			$shipping_methods = WC()->shipping->load_shipping_methods();
 			//var_dump($shipping_methods);
 			echo '<div class="smpp-wrapper">';
 			echo __('Shipping Options:', 'woocommerce-smpp');
 			echo '<ul>';
-			foreach ( $shipping_methods as $sm ) {
-				if ( $sm->enabled === 'yes') :
-					echo '<li><span class="smpp-title">' . esc_attr( $sm->method_title ) . '</span>' . money_format('%(#10n', esc_attr( $sm->fee ) ) . '</li>';
+			foreach ( $shipping_methods as $smpp ) {
+				if ( 'yes' === $smpp->enabled ) :
+
+					// Flate Rate Shipping
+					if ( 'flat_rate' === $smpp->id ) :
+						if ( $smpp->cost_per_order != '' ) :
+							$sm_method_string = $smpp->method_title . ': ' . money_format('%(#10n', $smpp->cost_per_order ) . $smpp_currency;
+						endif;
+					endif;
+
+					// Free Shipping
+					if ( 'free_shipping' === $smpp->id ) :
+						$sm_method_string = $smpp->method_title . ': '. __( 'Orders above ', 'smpp' ) . money_format('%(#10n', $smpp->min_amount ) . $smpp_currency;
+					endif;
+
+					// International Delivery
+
+					// Local Delivery
+					if ( 'local_delivery' === $smpp->id ) :
+						// Fixed per cart total
+						if ( 'fixed' === $smpp->type ) :
+							$sm_method_string = $smpp->method_title . ': ' . __( 'Per order', 'smpp' ) . money_format('%(#10n', $smpp->fee ) . $smpp_currency;
+						elseif ( 'percent' === $smpp->type ) :
+							// % of cart total
+							$sm_method_string = $smpp->method_title . ': ' . $smpp->fee . __( '% of cart total', 'smpp' );
+						elseif ( 'product' === $smpp->type ) :
+							// Fixed per product
+							$sm_method_string = $smpp->method_title . ': ' . money_format('%(#10n', $smpp->fee ) . ' ' . $smpp_currency . __( ' Per product', 'smpp' );
+						endif;
+					endif;
+
+					// Local Pickup
+
+					echo '<li><span class="smpp-title">' . esc_attr( $sm_method_string ) . '</li>';
+					$sm_method_string = '';
 				endif;
 			}
 			echo '</ul></div>';

@@ -31,3 +31,12 @@ Hard to say really, so many themes to test so little time.
 
 = What hook is used to display the shipping methods? =
 The hook that is used is woocommerce_single_product_summary, priority 11 on the content-single-product.php. This will output the shipping methods right after the price, if your theme uses the standard hook and priority (10).
+
+== Changelog ==
+
+= 1.0.1 =
+* Starting to fill out shipping methods
+* Added set currency option from WC Settings
+
+= 1.0 =
+* Original commit and released to the world
